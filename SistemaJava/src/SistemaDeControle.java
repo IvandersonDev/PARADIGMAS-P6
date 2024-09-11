@@ -2,9 +2,9 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 class Item {
-    private String codigo;
-    private String descricao;
-    private double valor;
+    private final String codigo;
+    private final String descricao;
+    private final double valor;
     private double acrescimo;
     private double desconto;
 
@@ -41,12 +41,14 @@ class Item {
     }
 
     public void imprimirItem() {
-        System.out.println("Código: " + codigo + ", Descrição: " + descricao + ", Valor: " + valor + ", Acréscimo: " + acrescimo + ", Desconto: " + desconto + ", Total: " + getTotal());
+        System.out.println(
+                "Código: " + codigo + ", Descrição: " + descricao + ", Valor: " + valor + ", Acréscimo: " + acrescimo + ", Desconto: " + desconto + ", Total: " + getTotal());
+
     }
 }
 
 class Carrinho {
-    private ArrayList<Item> itens;
+    private final ArrayList<Item> itens;
 
     public Carrinho() {
         itens = new ArrayList<>();
@@ -101,14 +103,14 @@ class Carrinho {
 }
 
 public class SistemaDeControle {
-    private static Scanner scanner = new Scanner(System.in);
-    private static Carrinho carrinho = new Carrinho();
+    private static final Scanner scanner = new Scanner(System.in);
+    private static final Carrinho carrinho = new Carrinho();
 
     public static void main(String[] args) {
         while (true) {
             exibirMenu();
             int opcao = scanner.nextInt();
-            scanner.nextLine(); // Consome a nova linha
+            scanner.nextLine();
             switch (opcao) {
                 case 1:
                     inserirItem();
