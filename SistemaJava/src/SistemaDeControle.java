@@ -1,110 +1,13 @@
 import java.util.ArrayList;
 import java.util.Scanner;
 
-class Item {
-    private final String codigo;
-    private final String descricao;
-    private final double valor;
-    private double acrescimo;
-    private double desconto;
-
-    public Item(String codigo, String descricao, double valor) {
-        this.codigo = codigo;
-        this.descricao = descricao;
-        this.valor = valor;
-        this.acrescimo = 0;
-        this.desconto = 0;
-    }
-
-    public String getCodigo() {
-        return codigo;
-    }
-
-    public double getTotal() {
-        return valor + acrescimo - desconto;
-    }
-
-    public double getAcrescimo() {
-        return acrescimo;
-    }
-
-    public double getDesconto() {
-        return desconto;
-    }
-
-    public void aplicarAcrescimo(double valor) {
-        this.acrescimo += valor;
-    }
-
-    public void aplicarDesconto(double valor) {
-        this.desconto += valor;
-    }
-
-    public void imprimirItem() {
-        System.out.println(
-                "Código: " + codigo + ", Descrição: " + descricao + ", Valor: " + valor + ", Acréscimo: " + acrescimo + ", Desconto: " + desconto + ", Total: " + getTotal());
-
-    }
-}
-
-class Carrinho {
-    private final ArrayList<Item> itens;
-
-    public Carrinho() {
-        itens = new ArrayList<>();
-    }
-
-    public void inserirItem(Item item) {
-        itens.add(item);
-    }
-
-    public Item buscarItemPorCodigo(String codigo) {
-        for (Item item : itens) {
-            if (item.getCodigo().equals(codigo)) {
-                return item;
-            }
-        }
-        return null;
-    }
-
-    public void aplicarAcrescimoTotal(double acrescimo) {
-        if (!itens.isEmpty()) {
-            double acrescimoPorItem = acrescimo / itens.size();
-            itens.forEach(item -> item.aplicarAcrescimo(acrescimoPorItem));
-        }
-    }
-
-    public void aplicarDescontoTotal(double desconto) {
-        if (!itens.isEmpty()) {
-            double descontoPorItem = desconto / itens.size();
-            itens.forEach(item -> item.aplicarDesconto(descontoPorItem));
-        }
-    }
-
-    public double calcularTotalAcrescimos() {
-        return itens.stream().mapToDouble(Item::getAcrescimo).sum();
-    }
-
-    public double calcularTotalDescontos() {
-        return itens.stream().mapToDouble(Item::getDesconto).sum();
-    }
-
-    public double calcularValorTotal() {
-        return itens.stream().mapToDouble(Item::getTotal).sum();
-    }
-
-    public void finalizarVenda() {
-        System.out.println("Itens do carrinho:");
-        itens.forEach(Item::imprimirItem);
-        System.out.println("Desconto total: " + calcularTotalDescontos());
-        System.out.println("Acréscimo total: " + calcularTotalAcrescimos());
-        System.out.println("Valor total: " + calcularValorTotal());
-    }
-}
-
-public class SistemaDeControle {
+class SistemaDeControle {
     private static final Scanner scanner = new Scanner(System.in);
-    private static final Carrinho carrinho = new Carrinho();
+    private static final ArrayList<String> codigos = new ArrayList<>();
+    private static final ArrayList<String> descricoes = new ArrayList<>();
+    private static final ArrayList<Double> valores = new ArrayList<>();
+    private static final ArrayList<Double> acrescimos = new ArrayList<>();
+    private static final ArrayList<Double> descontos = new ArrayList<>();
 
     public static void main(String[] args) {
         while (true) {
@@ -128,7 +31,7 @@ public class SistemaDeControle {
                     aplicarDescontoTotal();
                     break;
                 case 6:
-                    carrinho.finalizarVenda();
+                    finalizarVenda();
                     return;
                 default:
                     System.out.println("Opção inválida!");
@@ -154,19 +57,29 @@ public class SistemaDeControle {
         String descricao = scanner.nextLine();
         System.out.print("Valor do item: ");
         double valor = scanner.nextDouble();
-        Item item = new Item(codigo, descricao, valor);
-        carrinho.inserirItem(item);
+
+        codigos.add(codigo);
+        descricoes.add(descricao);
+        valores.add(valor);
+        acrescimos.add(0.0);
+        descontos.add(0.0);
+
         System.out.println("Item inserido com sucesso!");
+    }
+
+    private static int buscarItemPorCodigo(String codigo) {
+        return codigos.indexOf(codigo);
     }
 
     private static void aplicarAcrescimoItem() {
         System.out.print("Código do item: ");
         String codigo = scanner.nextLine();
-        Item item = carrinho.buscarItemPorCodigo(codigo);
-        if (item != null) {
+        int index = buscarItemPorCodigo(codigo);
+
+        if (index != -1) {
             System.out.print("Valor do acréscimo: ");
             double acrescimo = scanner.nextDouble();
-            item.aplicarAcrescimo(acrescimo);
+            acrescimos.set(index, acrescimos.get(index) + acrescimo);
             System.out.println("Acréscimo aplicado com sucesso!");
         } else {
             System.out.println("Item não encontrado!");
@@ -176,11 +89,12 @@ public class SistemaDeControle {
     private static void aplicarDescontoItem() {
         System.out.print("Código do item: ");
         String codigo = scanner.nextLine();
-        Item item = carrinho.buscarItemPorCodigo(codigo);
-        if (item != null) {
+        int index = buscarItemPorCodigo(codigo);
+
+        if (index != -1) {
             System.out.print("Valor do desconto: ");
             double desconto = scanner.nextDouble();
-            item.aplicarDesconto(desconto);
+            descontos.set(index, descontos.get(index) + desconto);
             System.out.println("Desconto aplicado com sucesso!");
         } else {
             System.out.println("Item não encontrado!");
@@ -189,15 +103,58 @@ public class SistemaDeControle {
 
     private static void aplicarAcrescimoTotal() {
         System.out.print("Valor total do acréscimo: ");
-        double acrescimo = scanner.nextDouble();
-        carrinho.aplicarAcrescimoTotal(acrescimo);
-        System.out.println("Acréscimo total aplicado com sucesso!");
+        double acrescimoTotal = scanner.nextDouble();
+
+        if (!codigos.isEmpty()) {
+            double acrescimoPorItem = acrescimoTotal / codigos.size();
+            for (int i = 0; i < acrescimos.size(); i++) {
+                acrescimos.set(i, acrescimos.get(i) + acrescimoPorItem);
+            }
+            System.out.println("Acréscimo total aplicado com sucesso!");
+        }
     }
 
     private static void aplicarDescontoTotal() {
         System.out.print("Valor total do desconto: ");
-        double desconto = scanner.nextDouble();
-        carrinho.aplicarDescontoTotal(desconto);
-        System.out.println("Desconto total aplicado com sucesso!");
+        double descontoTotal = scanner.nextDouble();
+
+        if (!codigos.isEmpty()) {
+            double descontoPorItem = descontoTotal / codigos.size();
+            for (int i = 0; i < descontos.size(); i++) {
+                descontos.set(i, descontos.get(i) + descontoPorItem);
+            }
+            System.out.println("Desconto total aplicado com sucesso!");
+        }
+    }
+
+    private static double calcularTotalAcrescimos() {
+        return acrescimos.stream().mapToDouble(Double::doubleValue).sum();
+    }
+
+    private static double calcularTotalDescontos() {
+        return descontos.stream().mapToDouble(Double::doubleValue).sum();
+    }
+
+    private static double calcularValorTotal() {
+        double total = 0.0;
+        for (int i = 0; i < codigos.size(); i++) {
+            total += valores.get(i) + acrescimos.get(i) - descontos.get(i);
+        }
+        return total;
+    }
+
+    private static void finalizarVenda() {
+        System.out.println("Itens do carrinho:");
+        for (int i = 0; i < codigos.size(); i++) {
+            System.out.println(
+                    "Código: " + codigos.get(i) + ", Descrição: " + descricoes.get(i) +
+                            ", Valor: " + valores.get(i) + ", Acréscimo: " + acrescimos.get(i) +
+                            ", Desconto: " + descontos.get(i) + ", Total: " + (valores.get(i) + acrescimos.get(i) - descontos.get(i))
+            );
+        }
+
+        System.out.println("Desconto total: " + calcularTotalDescontos());
+        System.out.println("Acréscimo total: " + calcularTotalAcrescimos());
+        System.out.println("Valor total: " + calcularValorTotal());
     }
 }
