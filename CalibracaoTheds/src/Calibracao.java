@@ -8,7 +8,7 @@ import java.util.concurrent.Future;
 public class Calibracao {
 
     public static int calcularSomaCalibracao(List<String> calibrations) throws Exception {
-        int numThreads = Runtime.getRuntime().availableProcessors();
+        int numThreads = 16;
         int blockSize = calibrations.size() / numThreads;
 
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
